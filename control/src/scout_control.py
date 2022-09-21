@@ -1,4 +1,5 @@
 #!/home/won/.pyenv/versions/3.7.8/envs/camera_ros/bin/python
+# Lenovo 환경 셔뱅
 # -*- coding: utf-8 -*-
 
 import rospy
@@ -9,12 +10,11 @@ from geometry_msgs.msg import Pose
 class Scout_ctr:
     def __init__(self):
         self.dwa_motion_fin = 'off'
-        self.xArm_catch = 'off'
         self.xArm_motion_fin = 'off'
-        self.tf_motion_fin = 'off'
-        self.ctr_mode = 'patrol'
+        self.mode = 'go_to_aruco'
+        self.mode_pre = 'previous'
+        self.mode_num = 0
         rospy.Subscriber('dwa_motion_fin', String, self.dwa_motion_fin_f)
-        rospy.Subscriber('xArm_catch', String, self.xArm_catch_f)
         rospy.Subscriber('xArm_motion_fin', String, self.xArm_motion_fin_f)
 
         self.dwa_motion_start = rospy.Publisher('dwa_motion_start', String, queue_size=1)
@@ -23,18 +23,33 @@ class Scout_ctr:
         self.pub_to_xArm = String()
 
     def p(self):
+        if self.mode == 'go_to_aruco':  # Just DWA
+            if self.dwa_motion_fin == 'go_to_aruco_fin':
+                self.mode = 'xArm_move'
 
+        if self.mode == 'xArm_move':    # Just xArm
+            if self.xArm_motion_fin == 'xArm_move_fin':
+                self.mode = 'go_to_home'
 
+        if self.mode == 'go_to_home':   # Just DWA
+            if self.dwa_motion_fin == 'go_to_home_fin':
+                self.mode = 'xArm_move_home'
 
+        if self.mode == 'xArm_move_home':   # Just xArm
+            if self.xArm_motion_fin == 'xArm_move_home_fin':
+                self.mode = 'go_to_aruco'   # 처음 부터 다시
+
+        if self.mode != self.mode_pre:
+            self.mode_pre = self.mode
+            self.mode_num += 1
+            print(f'[{self.mode_num}]mode: {self.mode}')
 
         self.dwa_motion_start.publish(self.pub_to_dwa)
         self.xArm_motion_start.publish(self.pub_to_xArm)
 
+    # Subscribe 받을 시 self 변수에 대입을 위한 함수
     def dwa_motion_fin_f(self, a):
         self.dwa_motion_fin = a.data
-
-    def xArm_catch_f(self, a):
-        self.xArm_catch = a.data
 
     def xArm_motion_fin_f(self, a):
         self.xArm_motion_fin = a.data
