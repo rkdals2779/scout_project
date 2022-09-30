@@ -1,5 +1,4 @@
-#!/home/won/.pyenv/versions/3.7.8/envs/camera_ros/bin/python
-# Lenovo 환경 셔뱅
+#!/usr/bin/env python 
 # -*- coding: utf-8 -*-
 
 import rospy
@@ -11,7 +10,8 @@ class Scout_ctr:
     def __init__(self):
         self.dwa_motion_fin = 'off'
         self.xArm_motion_fin = 'off'
-        self.mode = 'go_to_aruco'
+        self.mode = String()
+        self.mode.data = 'go_to_aruco'
         self.mode_pre = 'previous'
         self.mode_num = 0
         rospy.Subscriber('dwa_motion_fin', String, self.dwa_motion_fin_f)
@@ -19,33 +19,33 @@ class Scout_ctr:
 
         self.dwa_motion_start = rospy.Publisher('dwa_motion_start', String, queue_size=1)
         self.xArm_motion_start = rospy.Publisher('xArm_motion_start', String, queue_size=1)
-        self.pub_to_dwa = String()
-        self.pub_to_xArm = String()
+        #self.pub_to_dwa = String()
+        #self.pub_to_xArm = String()
 
     def p(self):
-        if self.mode == 'go_to_aruco':  # Just DWA
+        if self.mode.data == 'go_to_aruco':  # Just DWA
             if self.dwa_motion_fin == 'go_to_aruco_fin':
-                self.mode = 'xArm_move'
+                self.mode.data = 'xArm_move'
 
-        if self.mode == 'xArm_move':    # Just xArm
+        if self.mode.data == 'xArm_move':    # Just xArm
             if self.xArm_motion_fin == 'xArm_move_fin':
-                self.mode = 'go_to_home'
+                self.mode.data = 'go_to_home'
 
-        if self.mode == 'go_to_home':   # Just DWA
+        if self.mode.data == 'go_to_home':   # Just DWA
             if self.dwa_motion_fin == 'go_to_home_fin':
-                self.mode = 'xArm_move_home'
+                self.mode.data = 'xArm_move_home'
 
-        if self.mode == 'xArm_move_home':   # Just xArm
+        if self.mode.data == 'xArm_move_home':   # Just xArm
             if self.xArm_motion_fin == 'xArm_move_home_fin':
-                self.mode = 'go_to_aruco'   # 처음 부터 다시
+                self.mode.data = 'go_to_aruco'   # 처음 부터 다시
 
-        if self.mode != self.mode_pre:
-            self.mode_pre = self.mode
+        if self.mode.data != self.mode_pre:
+            self.mode_pre = self.mode.data
             self.mode_num += 1
-            print(f'[{self.mode_num}]mode: {self.mode}')
+            print('[{}]mode: {}'.format(self.mode_num, self.mode.data))
 
-        self.dwa_motion_start.publish(self.pub_to_dwa)
-        self.xArm_motion_start.publish(self.pub_to_xArm)
+        self.dwa_motion_start.publish(self.mode.data)
+        self.xArm_motion_start.publish(self.mode.data)
 
     # Subscribe 받을 시 self 변수에 대입을 위한 함수
     def dwa_motion_fin_f(self, a):
