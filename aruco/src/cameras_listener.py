@@ -1,10 +1,10 @@
-#!/home/min/.pyenv/versions/pyenv_py3810/bin/python3.8
+#!/home/scout/.pyenv/versions/rospy368/bin/python
 # -*- coding: utf-8 -*-
 
 import rospy
 import tf
 import numpy as np
-from std_msgs.msg import Bool, String
+from std_msgs.msg import Bool, String, Int32
 from geometry_msgs.msg import Pose
 
 
@@ -16,6 +16,11 @@ class camera_ls:
         self.L515_aruco01_detected_pre = False
         self.D455_aruco01_detected = False
         self.D455_aruco01_detected_pre = False
+        rospy.Subscriber('L515_arucos_num', Int32, self.L515_arucos_num)
+        rospy.Subscriber('xArm_motion_start', String, self.mode)
+        self.L515_arucos_num = 0    # 감지된 마커 개수
+        self.need_aruco_id = 0     # 좌표를 보내야하는 마커의 id
+        self.mode = 'none'
         print("start")
     def lss(self):
         listener = tf.TransformListener()
@@ -23,26 +28,52 @@ class camera_ls:
         pose_to_DWA = Pose()
         while not rospy.is_shutdown():
             # L515
-            try:
-                (trans, rot) = listener.lookupTransform("world", "L515_aruco01", rospy.Time(0))
-                self.L515_aruco01_detected = True
-            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                self.L515_aruco01_detected = False
-                continue
-            # publishing
-            if self.L515_aruco01_detected:
-                pose_to_xArm.position.x = trans[0]
-                pose_to_xArm.position.y = trans[1]
-                pose_to_xArm.position.z = trans[2]
-                pose_to_xArm.orientation.x = rot[0]
-                pose_to_xArm.orientation.y = rot[1]
-                pose_to_xArm.orientation.z = rot[2]
-                pose_to_xArm.orientation.w = rot[3]
-                self.aruco_Pose_to_xArm.publish(pose_to_xArm)
+            # 출발할 땐 1번, 도착했을 땐 2번
+            if self.mode == 'xArm_move':
+                self.need_aruco_id = 1
+            elif self.mode == 'xArm_move_home':
+                self.need_aruco_id = 2
+            else:
+                self.need_aruco_id = 0
+            if self.need_aruco_id == 1:
+                try:
+                    (trans, rot) = listener.lookupTransform("link_base", f"L515_aruco{self.need_aruco_id}", rospy.Time(0))
+                    self.L515_aruco01_detected = True
+                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                    self.L515_aruco01_detected = False
+                    continue
+                # publishing
+                if self.L515_aruco01_detected:
+                    pose_to_xArm.position.x = trans[0]
+                    pose_to_xArm.position.y = trans[1]
+                    pose_to_xArm.position.z = trans[2]
+                    pose_to_xArm.orientation.x = 1
+                    pose_to_xArm.orientation.y = 0
+                    pose_to_xArm.orientation.z = 0
+                    pose_to_xArm.orientation.w = 0
+                    self.aruco_Pose_to_xArm.publish(pose_to_xArm)
+
+            elif self.need_aruco_id == 2:
+                try:
+                    (trans, rot) = listener.lookupTransform("link_base", "sure_pose", rospy.Time(0))
+                    self.L515_aruco01_detected = True
+                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                    self.L515_aruco01_detected = False
+                    continue
+                # publishing
+                if self.L515_aruco01_detected:
+                    pose_to_xArm.position.x = trans[0]
+                    pose_to_xArm.position.y = trans[1]
+                    pose_to_xArm.position.z = trans[2]
+                    pose_to_xArm.orientation.x = 1
+                    pose_to_xArm.orientation.y = 0
+                    pose_to_xArm.orientation.z = 0
+                    pose_to_xArm.orientation.w = 0
+                    self.aruco_Pose_to_xArm.publish(pose_to_xArm)
 
             # D455
             try:
-                (trans, rot) = listener.lookupTransform("world", "D455_aruco01", rospy.Time(0))
+                (trans, rot) = listener.lookupTransform("base_link", "D455_aruco01", rospy.Time(0))
                 self.D455_aruco01_detected = True
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 self.D455_aruco01_detected = False
@@ -64,6 +95,12 @@ class camera_ls:
                 print(f"D455: {self.D455_aruco01_detected}")
             self.L515_aruco01_detected_pre = self.L515_aruco01_detected
             self.D455_aruco01_detected_pre = self.D455_aruco01_detected
+
+    def L515_arucos_num(self, a):
+        self.L515_arucos_num = a
+
+    def mode(self, a):
+        self.mode = a.data
 
 
 
