@@ -20,57 +20,41 @@ class Scout_ctr:
 
         self.dwa_motion_start = rospy.Publisher('dwa_motion_start', String, queue_size=1)
         self.xArm_motion_start = rospy.Publisher('xArm_motion_start', String, queue_size=1)
-        #self.pub_to_dwa = String()
-        #self.pub_to_xArm = String()
 
     def p(self):
-        # if self.mode.data == 'xArm_move':  # Just xArm
-        #     if self.xArm_motion_fin == 'xArm_move_fin':
-        #         self.mode.data = 'go_to_aruco'
-        #
-        # if self.mode.data == 'go_to_aruco':    # Just DWA
-        #     if self.dwa_motion_fin == 'dwa_fin':
-        #         self.mode.data = 'go_to_home'
-        #         # self.mode.data = 'xArm_move_home'
-        #
-        #
-        # elif self.mode.data == 'go_to_home':   # Just DWA
-        #     if self.dwa_motion_fin == 'dwa_fin':
-        #         self.mode.data = 'xArm_move_home'
-        #
-        # if self.mode.data == 'xArm_move_home':   # Just xArm
-        #     if self.xArm_motion_fin == 'xArm_move_home_fin':
-        #         self.mode.data = 'go_to_aruco'
+        if self.mode.data == 'xArm_move':  # Just xArm
+            if self.xArm_motion_fin == 'xArm_move_fin':
+                self.mode.data = 'go_to_aruco'
 
+        if self.mode.data == 'go_to_aruco':  # Just DWA
+            if self.dwa_motion_fin == 'go_to_home_fin':
+                self.mode.data = 'go_to_home'
 
-
-        
-        # if self.mode.data == 'xArm_move':  # Just xArm
-        #     if self.xArm_motion_fin == 'xArm_move_fin':
-        #         self.mode.data = 'xArm_move_home'
-
-        # if self.mode.data == 'xArm_move_home':   # Just xArm
-        #     if self.xArm_motion_fin == 'xArm_move_home_fin':
-        #         self.mode.data = 'go_to_aruco'
-
-        if self.mode.data == 'go_to_aruco':    # Just DWA
-            if self.dwa_motion_fin == 'dwa_fin':
-                self.mode.data = 'none'
-                # self.mode.data = 'xArm_move_home'
-        
-        elif self.mode.data == 'none':
-            r = rospy.Rate(1)
-            r.sleep()
-            self.mode.data = 'go_to_home'
-
-
-        elif self.mode.data == 'go_to_home':   # Just DWA
-            if self.dwa_motion_fin == 'dwa_fin':
+        elif self.mode.data == 'go_to_home':  # Just DWA
+            if self.dwa_motion_fin == 'go_to_home_fin':
                 self.mode.data = 'xArm_move_home'
 
-        
+        if self.mode.data == 'xArm_move_home':   # Just xArm
+            if self.xArm_motion_fin == 'xArm_move_home_fin':
+                self.mode.data = 'go_to_aruco'
 
+        # #### xArm 확인용 control
+        # if self.mode.data == 'xArm_move':  # Just xArm
+        #     if self.xArm_motion_fin == 'xArm_move_fin':
+        #         self.mode.data = 'xArm_move_home'
+        #
+        # if self.mode.data == 'xArm_move_home':   # Just xArm
+        #     if self.xArm_motion_fin == 'xArm_move_home_fin':
+        #         self.mode.data = 'go_to_aruco'
 
+        # #### dwa 확인용 control
+        # if self.mode.data == 'go_to_aruco':    # Just DWA
+        #     if self.dwa_motion_fin == 'go_to_home_fin':
+        #         self.mode.data = 'go_to_home'
+        #
+        # elif self.mode.data == 'go_to_home':   # Just DWA
+        #     if self.dwa_motion_fin == 'go_to_home_fin':
+        #         self.mode.data = 'xArm_move_home'
 
         if self.mode.data != self.mode_pre:
             self.mode_pre = self.mode.data
