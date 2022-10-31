@@ -21,6 +21,7 @@ class camera_ls:
         self.L515_arucos_num = 0    # 감지된 마커 개수
         self.need_aruco_id = 0     # 좌표를 보내야하는 마커의 id
         self.mode = 'none'
+        self.pose_array = []
         print("start")
     def lss(self):
         listener = tf.TransformListener()
@@ -35,6 +36,7 @@ class camera_ls:
                 self.need_aruco_id = 2
             else:
                 self.need_aruco_id = 0
+            print(self.need_aruco_id)
             if self.need_aruco_id == 1:
                 try:
                     (trans, rot) = listener.lookupTransform("link_base", f"L515_aruco{self.need_aruco_id}", rospy.Time(0))
@@ -44,32 +46,42 @@ class camera_ls:
                     continue
                 # publishing
                 if self.L515_aruco01_detected:
-                    pose_to_xArm.position.x = trans[0]
-                    pose_to_xArm.position.y = trans[1]
-                    pose_to_xArm.position.z = trans[2]
-                    pose_to_xArm.orientation.x = 1
-                    pose_to_xArm.orientation.y = 0
-                    pose_to_xArm.orientation.z = 0
-                    pose_to_xArm.orientation.w = 0
-                    self.aruco_Pose_to_xArm.publish(pose_to_xArm)
+                    if len(self.pose_array) < 10:
+                        self.pose_array.append(trans)
+                    else:
+                        median_value = np.median(self.pose_array, axis=0)
+                        pose_to_xArm.position.x = median_value[0]
+                        pose_to_xArm.position.y = median_value[1]
+                        pose_to_xArm.position.z = median_value[2]
+                        pose_to_xArm.orientation.x = 1
+                        pose_to_xArm.orientation.y = 0
+                        pose_to_xArm.orientation.z = 0
+                        pose_to_xArm.orientation.w = 0
+                        self.pose_array = []
+                        self.aruco_Pose_to_xArm.publish(pose_to_xArm)
 
             elif self.need_aruco_id == 2:
                 try:
-                    (trans, rot) = listener.lookupTransform("link_base", "sure_pose", rospy.Time(0))
+                    (trans, rot) = listener.lookupTransform("link_base", "cart_pose", rospy.Time(0))
                     self.L515_aruco01_detected = True
                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                     self.L515_aruco01_detected = False
                     continue
                 # publishing
                 if self.L515_aruco01_detected:
-                    pose_to_xArm.position.x = trans[0]
-                    pose_to_xArm.position.y = trans[1]
-                    pose_to_xArm.position.z = trans[2]
-                    pose_to_xArm.orientation.x = 1
-                    pose_to_xArm.orientation.y = 0
-                    pose_to_xArm.orientation.z = 0
-                    pose_to_xArm.orientation.w = 0
-                    self.aruco_Pose_to_xArm.publish(pose_to_xArm)
+                    if len(self.pose_array) < 10:
+                        self.pose_array.append(trans)
+                    else:
+                        median_value = np.median(self.pose_array, axis=0)
+                        pose_to_xArm.position.x = median_value[0]
+                        pose_to_xArm.position.y = median_value[1]
+                        pose_to_xArm.position.z = -0.186
+                        pose_to_xArm.orientation.x = 1
+                        pose_to_xArm.orientation.y = 0
+                        pose_to_xArm.orientation.z = 0
+                        pose_to_xArm.orientation.w = 0
+                        self.pose_array = []
+                        self.aruco_Pose_to_xArm.publish(pose_to_xArm)
 
             # D455
             try:
