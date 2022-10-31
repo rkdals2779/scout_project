@@ -17,8 +17,10 @@ class camera_ls:
         self.D455_aruco01_detected = False
         self.D455_aruco01_detected_pre = False
         rospy.Subscriber('L515_arucos_num', Int32, self.L515_arucos_num)
+        rospy.Subscriber('D455_arucos_num', Int32, self.D455_arucos_num)
         rospy.Subscriber('xArm_motion_start', String, self.mode)
         self.L515_arucos_num = 0    # 감지된 마커 개수
+        self.D455_arucos_num = 0    # 감지된 마커 개수
         self.need_aruco_id = 0     # 좌표를 보내야하는 마커의 id
         self.mode = 'none'
         self.pose_array = []
@@ -85,20 +87,20 @@ class camera_ls:
 
             # D455
             try:
-                (trans, rot) = listener.lookupTransform("base_link", "D455_aruco01", rospy.Time(0))
+                (trans_D455, rot_D455) = listener.lookupTransform("base_link", "D455_aruco0", rospy.Time(0))
                 self.D455_aruco01_detected = True
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 self.D455_aruco01_detected = False
             # publishing
             if self.D455_aruco01_detected:
-                pose_to_DWA.position.x = trans[0]
-                pose_to_DWA.position.y = trans[1]
-                pose_to_DWA.position.z = trans[2]
-                pose_to_DWA.orientation.x = rot[0]
-                pose_to_DWA.orientation.y = rot[1]
-                pose_to_DWA.orientation.z = rot[2]
-                pose_to_DWA.orientation.w = rot[3]
-                self.aruco_Pose_to_xArm.publish(pose_to_DWA)
+                pose_to_DWA.position.x = trans_D455[0]
+                pose_to_DWA.position.y = trans_D455[1]
+                pose_to_DWA.position.z = trans_D455[2]
+                pose_to_DWA.orientation.x = rot_D455[0]
+                pose_to_DWA.orientation.y = rot_D455[1]
+                pose_to_DWA.orientation.z = rot_D455[2]
+                pose_to_DWA.orientation.w = rot_D455[3]
+                self.aruco_Pose_to_DWA.publish(pose_to_DWA)
 
             # 마커 감지 확인
             if self.L515_aruco01_detected is not self.L515_aruco01_detected_pre:
@@ -110,6 +112,9 @@ class camera_ls:
 
     def L515_arucos_num(self, a):
         self.L515_arucos_num = a
+
+    def D455_arucos_num(self, a):
+        self.D455_arucos_num = a
 
     def mode(self, a):
         self.mode = a.data
