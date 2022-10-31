@@ -51,7 +51,10 @@ class DWA:
         if np.hypot(goal_pos[0] - self.scout_pose.x, goal_pos[1] - self.scout_pose.y) <= 0.8:
             turtle_vel.linear.x, turtle_vel.angular.z = 0., 0.
             self.dwa_mode = "none"
-            self.output.publish("dwa_fin")
+            if self.dwa_mode == "go_to_aruco":
+                self.output.publish("go_to_aruco_fin")
+            elif self.dwa_mode == "go_to_home":
+                self.output.publish("go_to_home_fin")
         else:
             best_score, back_check = self.evaluate_scores(pos_candidates, goal_pos, data_array, local_pos)
             turtle_vel.linear.x, turtle_vel.angular.z = mps[best_score[0]], radps[best_score[1]]
