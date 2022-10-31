@@ -16,11 +16,12 @@ class camera_br:
         self.D455_detect = False
         self.br = tf.TransformBroadcaster()
         rospy.Subscriber('L515_arucos_pose', PoseArray, self.L515_arucos_pose)
-        rospy.Subscriber('D455_aruco01_pose', Pose, self.D455_aruco01_pose)
+        rospy.Subscriber('D455_arucos_pose', PoseArray, self.D455_arucos_pose)
         print("start")
 
     def brs(self):
         while not rospy.is_shutdown():
+            # L515
             self.br.sendTransform((0.1015, 0.0, 0.085),
                                   tf.transformations.quaternion_from_euler(-np.pi * 2 / 3, 0, -np.pi / 2),
                                   rospy.Time.now(),
@@ -44,7 +45,7 @@ class camera_br:
                             f"L515_aruco{int(self.L515_arucos.poses[i].orientation.w)}",
                             "L515")
                     except:
-                        print("error occured ### i : ", i)
+                        print("L515 error occurred ### i : ", i)
                 try:
                     self.br.sendTransform(
                         (0, 0, 0.025),
@@ -55,6 +56,7 @@ class camera_br:
                 except:
                     print("2 in none")
 
+            # D455
             self.br.sendTransform((0.35, 0.0, 0.15),
                                   tf.transformations.quaternion_from_euler(-np.pi / 2, 0, -np.pi / 2),
                                   rospy.Time.now(),
@@ -62,22 +64,27 @@ class camera_br:
                                   "base_link")
 
             if self.D455_detect:
-                self.br.sendTransform((self.D455_aruco01.position.x, self.D455_aruco01.position.y,
-                                       self.D455_aruco01.position.z),
-                                      (tf.transformations.quaternion_from_euler(self.D455_aruco01.orientation.x,
-                                                                                -self.D455_aruco01.orientation.z,
-                                                                                self.D455_aruco01.orientation.y,
-                                                                                'rxyz')),
-                                      rospy.Time.now(),
-                                      "D455_aruco01",
-                                      "D455")
+                for i in range(len(self.D455_arucos.poses)):
+                    try:
+                        self.br.sendTransform(
+                            (self.D455_arucos.poses[i].position.x, self.D455_arucos.poses[i].position.y,
+                             self.D455_arucos.poses[i].position.z),
+                            (tf.transformations.quaternion_from_euler(self.D455_arucos.poses[i].orientation.x,
+                                                                      self.D455_arucos.poses[i].orientation.z,
+                                                                      -self.D455_arucos.poses[i].orientation.y,
+                                                                      'rxyz')),
+                            rospy.Time.now(),
+                            f"D455_aruco{int(self.D455_arucos.poses[i].orientation.w)}",
+                            "D455")
+                    except:
+                        print("D455 error occurred ### i : ", i)
 
     def L515_arucos_pose(self, a):
         self.L515_arucos = a
         self.L515_detect = True
 
-    def D455_aruco01_pose(self, a):
-        self.D455_aruco01 = a
+    def D455_arucos_pose(self, a):
+        self.D455_arucos = a
         self.D455_detect = True
 
 
