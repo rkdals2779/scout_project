@@ -47,10 +47,10 @@ class camera_br:
                         print("error occured ### i : ", i)
                 try:
                     self.br.sendTransform(
-                        (0, -0.235, 0.14),
+                        (0, 0, 0.025),
                         (tf.transformations.quaternion_from_euler(0, 0, 0)),
                         rospy.Time.now(),
-                        "sure_pose",
+                        "cart_pose",
                         "L515_aruco2")
                 except:
                     print("2 in none")
