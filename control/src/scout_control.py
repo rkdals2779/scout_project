@@ -11,6 +11,7 @@ class Scout_ctr:
         self.dwa_motion_fin = 'off'
         self.xArm_motion_fin = 'off'
         self.mode = String()
+        # self.mode.data = 'xArm_move'
         self.mode.data = 'go_to_aruco'
         self.mode_pre = 'previous'
         self.mode_num = 0
@@ -23,21 +24,53 @@ class Scout_ctr:
         #self.pub_to_xArm = String()
 
     def p(self):
-        if self.mode.data == 'go_to_aruco':  # Just DWA
-            if self.dwa_motion_fin == 'go_to_aruco_fin':
-                self.mode.data = 'xArm_move'
+        # if self.mode.data == 'xArm_move':  # Just xArm
+        #     if self.xArm_motion_fin == 'xArm_move_fin':
+        #         self.mode.data = 'go_to_aruco'
+        #
+        # if self.mode.data == 'go_to_aruco':    # Just DWA
+        #     if self.dwa_motion_fin == 'dwa_fin':
+        #         self.mode.data = 'go_to_home'
+        #         # self.mode.data = 'xArm_move_home'
+        #
+        #
+        # elif self.mode.data == 'go_to_home':   # Just DWA
+        #     if self.dwa_motion_fin == 'dwa_fin':
+        #         self.mode.data = 'xArm_move_home'
+        #
+        # if self.mode.data == 'xArm_move_home':   # Just xArm
+        #     if self.xArm_motion_fin == 'xArm_move_home_fin':
+        #         self.mode.data = 'go_to_aruco'
 
-        if self.mode.data == 'xArm_move':    # Just xArm
-            if self.xArm_motion_fin == 'xArm_move_fin':
-                self.mode.data = 'go_to_home'
 
-        if self.mode.data == 'go_to_home':   # Just DWA
-            if self.dwa_motion_fin == 'go_to_home_fin':
+
+        
+        # if self.mode.data == 'xArm_move':  # Just xArm
+        #     if self.xArm_motion_fin == 'xArm_move_fin':
+        #         self.mode.data = 'xArm_move_home'
+
+        # if self.mode.data == 'xArm_move_home':   # Just xArm
+        #     if self.xArm_motion_fin == 'xArm_move_home_fin':
+        #         self.mode.data = 'go_to_aruco'
+
+        if self.mode.data == 'go_to_aruco':    # Just DWA
+            if self.dwa_motion_fin == 'dwa_fin':
+                self.mode.data = 'none'
+                # self.mode.data = 'xArm_move_home'
+        
+        elif self.mode.data == 'none':
+            r = rospy.Rate(1)
+            r.sleep()
+            self.mode.data = 'go_to_home'
+
+
+        elif self.mode.data == 'go_to_home':   # Just DWA
+            if self.dwa_motion_fin == 'dwa_fin':
                 self.mode.data = 'xArm_move_home'
 
-        if self.mode.data == 'xArm_move_home':   # Just xArm
-            if self.xArm_motion_fin == 'xArm_move_home_fin':
-                self.mode.data = 'go_to_aruco'   # 처음 부터 다시
+        
+
+
 
         if self.mode.data != self.mode_pre:
             self.mode_pre = self.mode.data
