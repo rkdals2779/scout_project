@@ -444,12 +444,12 @@ def detect_marker(matrix, distortion):
                 frame = cv2.aruco.drawAxis(frame, matrix, distortion, rvecs[0], tvecs[0], 0.02)
                 tvecs_msg = tvecs.tolist()
                 rvecs_msg = rvecs.tolist()
-                tvecs_msg_x = tvecs_msg[0][0][0]
-                tvecs_msg_y = tvecs_msg[0][0][1]
-                tvecs_msg_z = tvecs_msg[0][0][2]
-                rvecs_msg_x = rvecs_msg[0][0][0]
-                rvecs_msg_y = rvecs_msg[0][0][1]
-                rvecs_msg_z = rvecs_msg[0][0][2]
+                tvecs_msg_x = tvecs_msg[0][0][0] # 지워도 됨
+                tvecs_msg_y = tvecs_msg[0][0][1] #
+                tvecs_msg_z = tvecs_msg[0][0][2] #
+                rvecs_msg_x = rvecs_msg[0][0][0] #
+                rvecs_msg_y = rvecs_msg[0][0][1] #
+                rvecs_msg_z = rvecs_msg[0][0][2] #
 
                 for i in range(len(ids[:])):
                     aruco01 = Pose()
